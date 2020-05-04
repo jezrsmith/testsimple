@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -6,37 +7,69 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 
-export class AppComponent {
+export class AppComponent implements OnInit {
+
+  constructor(protected httpClient: HttpClient) {
+  }
+
+
   title = 'testsimple';
-  theme = {
-    primary100: '#2281CB',
-  primary200: '#22B1E0',
-  primary300: '#22F6FF',
-  primary400: '#222E79',
-  primary500: '#225499',
-  primary600: '#22EAF9',
 
-  accent100: '#227800',
-  accent200: '#22621F',
-  accent300: '#22EDE3',
+  ready = false;
+  formApi: any;
+  form: any;
 
-  success100: '#22BE5B',
-  success200: '#138E33',
-  success300: '#E3FFEC',
+  handleFormLoad(event) {
+    this.formApi = event.target;
+    this.form = event.detail;
+    console.log('formLoad :', event);
+  }
 
-  warning100: '#FF3333',
-  warning200: '#D81E1E',
-  warning300: '#FFD9D9',
+  handleFormEvent(event) {
+    console.log(event);
+  }
 
-  text100: '#113333',
-  text200: '#666666',
-  text300: '#999999',
-  text400: '#CCCCCC',
+  handleCancel() {
+    // @ts-ignore
+    this.formApi.cancel();
+  }
 
-  background100: '#22F4F4',
-  background200: '#33FAFA',
-  background300: '#22FFFF'
-};
+  handleClose() {
+    this.formApi.close(this.form.data);
+  }
+
+  handleSubmit() {
+    this.form.data.InsuranceClaim.ClaimType = 'test';
+    const test  = this.form.data.InsuranceClaim.Participant[0];
+    delete test._id;
+    this.form.data.InsuranceClaim.Participant = [];
+    this.form.data.InsuranceClaim.Participant.push(test);
+
+    // const testobj = { ...test};
+    // Object.assign(testobj, test);
+    // this.form.data.InsuranceClaim.Participant.push(testobj);
+    this.formApi.submit(this.form.data);
+  }
+
+  ngOnInit(): void {
+    let body;
+    let url;
+    url = '/idm/v3/login-oauth';
+    body = new HttpParams()
+      .set('Email', '')
+      .set('Password', '')
+      .set('TenantId', 'bpm')
+      .set('ClientID', '');
+
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/x-www-form-urlencoded');
+    this.httpClient.post(url, body.toString(), { headers }).subscribe(
+      next => {
+        console.log(next);
+        this.ready = true;
+      }
+    );
+  }
 
 }
 
